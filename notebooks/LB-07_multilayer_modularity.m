@@ -1,17 +1,16 @@
 %W = squeeze(readNPY('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices.npy'));
 
-large = load('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices_new.mat');
+large = load('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices_dualnback.mat');
 
-%mat_thresholded = mat
-
-%for
 
 %%
 W = squeeze(large.correlation_matrices_dFC);
-
+W = W(1:10, :, :, :, :)
 
 %%
-WT = zeros(46, 4, 20, 264, 264);
+%WT = zeros(46, 4, 20, 264, 264);
+WT = zeros(10, 4, 20, 264, 264);
+
 
 %%
 for i = 1: length(W(:,1,1,1,1))
@@ -24,17 +23,6 @@ for i = 1: length(W(:,1,1,1,1))
         end
     end
 end
-
-%%
-
-%WT = W(:,:,:,:,:).*(W(:,:,:,:)>0);
-
-
-%%
-
-gamma = 1;
-omega = 1;
-rep = 10;
 
 
 %% calculate modularity for one session
@@ -49,9 +37,8 @@ end
 
 %% create multilayer network
 
-
-
-%%
+omega = 1
+gamma = 1
 N = length(A{1});                       % size of matrix
 T = length(A);                          % no of layers
 
@@ -80,44 +67,17 @@ B = B + omega*spdiags(ones(N*T,2),[-N,N],N*T,N*T);
 
 
 %% --- calculate multilayer modules -------------------------------------
-    Qb = 0;
-    for i = 1 : rep
-        clc;
-        %fprintf('Subject = %i\n',sub);
-        [St,Qt] = genlouvain(B);
-        Qt = Qt / twomu;
-        if Qt > Qb 
-            Qb = Qt;
-            Sb = reshape(St, N, T);
-        end        
-    end
 
-    
-  
-%% 
-flexibility(Sb', 'temp')
-
-%%
-
-S = Sb;
-
-AM = zeros(264,264);
-
-for i = 1: 264
-    for j = 1:264
-        M = mean(S(i,:) == S(j,:));
-        AM(i,j) = M;
-    end
-end
-        
         
 
 %%
 
-modularity = zeros(45, 4);
-flex = zeros(45, 4, 264);
-flex_mean = zeros(45, 4);     
-allegiance = zeros(45, 4, 264, 20);
+n_sub = 10
+
+modularity = zeros(n_sub, 4);
+flex = zeros(n_sub, 4, 264);
+flex_mean = zeros(n_sub, 4);     
+allegiance = zeros(n_sub, 4, 264, 20);
 
 %%
 
@@ -125,7 +85,7 @@ gamma = 1;
 omega = 1;
 rep = 100;
 
-for sub = 1:46
+for sub = 1:10
     for ses = 1:4
         A = cell(1,20);
 
