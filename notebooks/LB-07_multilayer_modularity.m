@@ -5,7 +5,7 @@ large = load('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/Learni
 
 %%
 W = squeeze(large.correlation_matrices_dFC);
-W = W(1:10, :, :, :, :)
+W = W(1:10, :, :, :, :);
 
 %%
 %WT = zeros(46, 4, 20, 264, 264);
@@ -72,7 +72,7 @@ B = B + omega*spdiags(ones(N*T,2),[-N,N],N*T,N*T);
 
 %%
 
-n_sub = 10
+n_sub = 1
 
 modularity = zeros(n_sub, 4);
 flex = zeros(n_sub, 4, 264);
@@ -83,7 +83,7 @@ allegiance = zeros(n_sub, 4, 264, 20);
 
 gamma = 1;
 omega = 1;
-rep = 100;
+rep = 10;
 
 for sub = 1:10
     for ses = 1:4
