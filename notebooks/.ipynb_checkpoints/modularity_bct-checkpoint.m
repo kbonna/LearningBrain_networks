@@ -9,7 +9,7 @@ dual = M.correlation_matrices_all;
 
 %%
 MOD = zeros(size(dual,3), 4);
-nrep = 1000;
+nrep = 200;
 n = 1;
 dual(isnan(dual(:))) = 0;
 
@@ -17,14 +17,14 @@ dual(isnan(dual(:))) = 0;
 
 
 for sub = 1: size(dual,1)
-    print(sub)
-    
+    sub
+  
     for ses = 1: size(dual,2)
-        
+        ses
         for con = 1: size(dual,3)
             qt = 0;
             for rep = 1: nrep
-                [Mod, Q] = community_louvain(dual(:,:,sub,ses,con),[],[],'negative_asym');
+                [Mod, Q] = community_louvain(squeeze(dual(sub,ses,con,:,:)),[],[],'negative_asym');
                     if Q > qt
                     qt = Q;
                     end
