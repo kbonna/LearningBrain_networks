@@ -3,7 +3,7 @@
 cd '/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/'
 %%
 
-M = load('correlation_matrices_all_static_conn_style.mat');
+M = load('correlation_matrices_static_lp_0_08.mat');
 dual = M.correlation_matrices_all;
 
 

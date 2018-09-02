@@ -1,15 +1,14 @@
 %W = squeeze(readNPY('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices.npy'));
 
-large = load('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices_dualnback.mat');
-
+large = load('/home/finc/Dropbox/Projects/LearningBrain/data/neuroimaging/LearningBrain_dFC_matrices_dualnback_conn_style.mat');
 
 %%
 W = squeeze(large.correlation_matrices_dFC);
-W = W(1:10, :, :, :, :);
+%W = W(1:10, :, :, :, :);
 
 %%
-%WT = zeros(46, 4, 20, 264, 264);
-WT = zeros(10, 4, 20, 264, 264);
+WT = zeros(46, 4, 20, 264, 264);
+%WT = zeros(10, 4, 20, 264, 264);
 
 
 %%
@@ -72,20 +71,102 @@ B = B + omega*spdiags(ones(N*T,2),[-N,N],N*T,N*T);
 
 %%
 
-n_sub = 1
-
+n_sub = 46;
 modularity = zeros(n_sub, 4);
 flex = zeros(n_sub, 4, 264);
 flex_mean = zeros(n_sub, 4);     
-allegiance = zeros(n_sub, 4, 264, 20);
+modules = zeros(n_sub, 4, 264, 20);
+
+
+%%
+N=length(A{1});
+T=length(A);
+B=spalloc(N*T,N*T,(N+T)*N*T);
+twomu=0;
+for s=1:T
+    k=sum(A{s});
+    twom=sum(k);
+    twomu=twomu+twom;
+    indx=[1:N]+(s-1)*N;
+    B(indx,indx)=A{s}-gamma*k'*k/twom;
+end
+twomu=twomu+T*omega*N*(T-1);
+all2all = N*[(-T+1):-1,1:(T-1)];
+B = B + omega*spdiags(ones(N*T,2*T-2),all2all,N*T,N*T);
+[S,Q] = genlouvain(B);
+Q = Q/twomu
+S = reshape(S,N,T);
+
+
 
 %%
 
 gamma = 1;
 omega = 1;
-rep = 10;
+rep = 100;
 
 for sub = 1:10
+    for ses = 1:4
+        A = cell(1,20);
+
+        for k = 1:20
+            A{k} = squeeze(WT(sub,ses,k,:,:));
+            N = length(A{1});                       % size of matrix
+            B = spalloc(N*T,N*T,(N+T)*N*T);  % empty multilayer matrix
+            twomu = 0;
+        end
+
+           
+        for s = 1:T 
+            k=sum(A{s});
+            twom=sum(k);
+            twomu=twomu+twom;
+            indx=[1:N]+(s-1)*N;
+            B(indx,indx)=A{s}-gamma*k'*k/twom;
+        end
+
+        twomu=twomu+T*omega*N*(T-1);
+        all2all = N*[(-T+1):-1,1:(T-1)];
+        B = B + omega*spdiags(ones(N*T,2*T-2),all2all,N*T,N*T);
+               
+                                 
+        Qb = 0;
+        for i = 1 : rep
+            clc;
+                %fprintf('Subject = %i\n',sub);
+           [St,Qt] = genlouvain(B);
+           Qt = Qt / twomu;
+           if Qt > Qb 
+              Qb = Qt;
+              Sb = reshape(St, N, T);
+           end
+         end
+         
+         f = flexibility(Sb', 'cat');
+         modularity(sub, ses) = Qb;
+         flex(sub, ses, :) = f;
+         flex_mean(sub, ses) = mean(f);
+         modules(sub, ses, :, :) = Sb;
+         
+         
+   end
+end
+
+%% --- temporal networks
+
+n_sub = 46;
+modularity = zeros(n_sub, 4);
+flex = zeros(n_sub, 4, 264);
+flex_mean = zeros(n_sub, 4);     
+modules = zeros(n_sub, 4, 264, 20);
+
+%%
+
+gamma = 1;
+omega = 1;
+rep = 100;
+
+for sub = 1:n_sub
     for ses = 1:4
         A = cell(1,20);
 
@@ -129,11 +210,12 @@ for sub = 1:10
          modularity(sub, ses) = Qb;
          flex(sub, ses, :) = f;
          flex_mean(sub, ses) = mean(f);
-         allegiance(sub, ses, :, :) = Sb;
+         modules(sub, ses, :, :) = Sb;Qt
          
          
    end
 end
+
 
 
 
