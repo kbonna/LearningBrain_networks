@@ -155,8 +155,9 @@ def temp_deriv(dataframe, quadratic = False):
     temp_deriv = dataframe 
 
     for col in dataframe.columns:
-        temp = np.gradient(dataframe[col], 1, axis = 0)
-        temp  = pd.DataFrame(temp )
+        temp = np.diff(dataframe[col], 1, axis = 0)
+        temp = np.insert(temp, 0, 0)
+        temp = pd.DataFrame(temp )
         temp_deriv[col + '_td'] = temp
         
     if quadratic == True:
@@ -205,7 +206,7 @@ def scrubbing(fd, thr = 0.5, before = True, after = True):
 
 
 
-def oultliers_fd_dvars(dataframe, fd = 0.5, dvars = 3):
+def outliers_fd_dvars(dataframe, fd = 0.5, dvars = 3):
 
     temp = pd.DataFrame()
     dataframe.loc[0] = 0
