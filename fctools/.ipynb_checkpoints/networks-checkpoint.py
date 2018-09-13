@@ -9,7 +9,7 @@ Last edit: Tue Jun 12 2018
 """
 
 import numpy as np
-
+import pandas as pd
 
 def calculate_lsn_edges (A, labels):
     """Function calculates number of edges between and within predefined large-scale networks (LSNs).
@@ -73,15 +73,15 @@ def allegiance_matrix(M):
 
 
 def allegiance_matrices_4d(M):
-    """Calculates 4D array composed of allegiance matrices for each subject and each condition/session."
+    """Calculates 4D array composed of allegiance matrices for each subject and each condition/session.
     
     Parameters
     ------------
-    array: 4D array S(subjecys) x C(condition/session) x M(node) x N(window) 
+    array: 4D array S(subjects) x C(condition/session) x N(node) x M(window) 
 
     Returns
     ------------
-    array: 4D array S(subjecys) x C(condition/session) x M(node) x M(node), where M x M is allegiance matrix 
+    array: 4D array S(subjects) x C(condition/session) x N(node) x N(node), where N x N is allegiance matrix 
         
     """
     
@@ -94,3 +94,94 @@ def allegiance_matrices_4d(M):
             AM[sub, ses, :, :] = allegiance_matrix(M[sub, ses, :, :])
     return AM    
     
+
+def sort_matrices_4d(M, idx):
+    """Sorts matrices according to predefinded index.
+    
+    Parameters
+    ------------
+    array: 4D array S(subjects) x C(condition/session) x N(node) x N(node) (unsorted)
+    array: N-length vector with index to sort matrix
+
+    Returns
+    ------------
+    array: 4D array S(subjects) x C(condition/session) x N(node) x N(node) (sorted)
+    
+    """
+    M1 = M[:,:,:,idx]
+    M2 = M1[:,:,idx,:]
+    return M2
+
+
+def dumming(labels):
+    """Gennerate vectors with dummy variables from single vector with categorical variable
+    
+    Parameters
+    ------------
+    array: np.array, N-length vector with categorical variable
+
+    Returns
+    ------------
+    array: 3D array with M rows and N columns with binary variables
+    
+    
+    """
+
+    columns = np.unique(labels)
+    dummies = np.zeros((len(labels), len(columns)))
+
+    for col in range(len(columns)):
+        module = columns[col]
+        for row in range(len(labels)):
+            if (labels[row] == module):
+                dummies[row, col] = 1
+            else:
+                dummies[row, col] = 0
+    return dummies
+
+
+def dumming_pd(labels):
+    """Gennerate vectors with dummy variables from single vector with categorical variable
+    
+    Parameters
+    ------------
+    array: np.array, N-length vector with categorical variable
+
+    Returns
+    ------------
+    array: pd.DataFrame with M rows and N columns with binary variables
+    
+    """
+    columns = np.unique(labels)
+    return pd.DataFrame(dumming(labels), columns=columns)
+
+def upper_tri_masking(A):
+    """Getting values of upper triangle of matrix without diagonal"""
+    m = A.shape[0]
+    r = np.arange(m)
+    mask = r[:,None] < r
+    return A[mask]
+
+
+def fc_cartography(M, modules):
+    """Function which calculates mean integration and recruitment values from sorted allegiance matrices"""
+    dummy_networks = dumming(sorted(modules))
+    roi_n = len(dummy_networks)
+    net = np.size(dummy_networks,1)
+    diagnostics = np.zeros((net, net))
+
+    for i in range(net):
+        for j in range(net):
+            vec1 = dummy_networks[:,i].astype('bool')
+            vec2 = dummy_networks[:,j].astype('bool')
+
+            L = M[vec1,:]
+            P = L[:,vec2]
+
+            if i == j:
+                m = upper_tri_masking(P).mean()
+            else:
+                m = P.mean()
+
+            diagnostics[i, j] = m
+    return diagnostics
