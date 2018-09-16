@@ -212,7 +212,7 @@ def outliers_fd_dvars(dataframe, fd = 0.5, dvars = 3):
     dataframe.loc[0] = 0
 
 
-    dvars_out = dataframe[dataframe.columns[0]].astype(float) > dvars
+    dvars_out = np.absolute(dataframe[dataframe.columns[0]].astype(float)) > dvars
     fd_out = dataframe[dataframe.columns[1]].astype(float) > fd
 
     outliers = (dvars_out == True) | (fd_out == True)
